@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Chart</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<h1>Test Chart</h1>
+
+<div style="width:800px;height:400px;">
+    <canvas id="cpuChart"></canvas>
+    <canvas id="memoryChart"></canvas>
+</div>
+
+<script>
+fetch('/history')
+.then(response => response.json())
+.then(data => {
+
+    console.log("History Data:", data);
+
+    const labels = data.map(row => row[4]);
+    const cpuData = data.map(row => row[1]);
+    const memoryData = data.map(row => row[2]);
+
+    const ctx = document.getElementById('cpuChart');
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'CPU Usage',
+                data: cpuData
+            }]
+        }
+    });
+
+    new Chart(
+    document.getElementById('memoryChart'),
+    {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Memory Usage',
+                data: memoryData
+            }]
+        }
+    }
+);
+
+});
+</script>
+
+</body>
+</html>

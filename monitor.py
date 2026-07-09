@@ -6,6 +6,3 @@ def get_metrics():
         "memory": psutil.virtual_memory().percent,
         "disk": psutil.disk_usage('/').percent
     }
-
-if __name__ == "__main__":
-    print(get_metrics())
