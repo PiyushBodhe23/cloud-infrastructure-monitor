@@ -1,73 +1,137 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Test Chart</title>
+    <title>Cloud Infrastructure Monitor</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-<h1>Test Chart</h1>
+<h1>Cloud Infrastructure Monitor</h1>
 
-<div style="width:800px;height:400px;">
+<div style="width:800px;">
     <canvas id="cpuChart"></canvas>
+</div>
+
+<br>
+
+<div style="width:800px;">
     <canvas id="memoryChart"></canvas>
+</div>
+
+<br>
+
+<div style="width:800px;">
     <canvas id="diskChart"></canvas>
 </div>
 
-<script>
-fetch('/history')
-.then(response => response.json())
-.then(data => {
+<br>
 
-    console.log("History Data:", data);
+<h2>Recent Incidents</h2>
+<ul id="incidentList"></ul>
+
+<script>
+
+let cpuChart;
+let memoryChart;
+let diskChart;
+
+async function loadCharts() {
+
+    // Collect latest metrics
+    await fetch('/metrics');
+
+    const response = await fetch('/history');
+    const data = await response.json();
 
     const labels = data.map(row => row[4]);
     const cpuData = data.map(row => row[1]);
     const memoryData = data.map(row => row[2]);
     const diskData = data.map(row => row[3]);
 
-    const ctx = document.getElementById('cpuChart');
+    if (!cpuChart) {
 
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'CPU Usage',
-                data: cpuData
-            }]
-        }
+        cpuChart = new Chart(
+            document.getElementById('cpuChart'),
+            {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'CPU Usage (%)',
+                        data: cpuData
+                    }]
+                }
+            }
+        );
+
+        memoryChart = new Chart(
+            document.getElementById('memoryChart'),
+            {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Memory Usage (%)',
+                        data: memoryData
+                    }]
+                }
+            }
+        );
+
+        diskChart = new Chart(
+            document.getElementById('diskChart'),
+            {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Disk Usage (%)',
+                        data: diskData
+                    }]
+                }
+            }
+        );
+
+    } else {
+
+        cpuChart.data.labels = labels;
+        cpuChart.data.datasets[0].data = cpuData;
+        cpuChart.update();
+
+        memoryChart.data.labels = labels;
+        memoryChart.data.datasets[0].data = memoryData;
+        memoryChart.update();
+
+        diskChart.data.labels = labels;
+        diskChart.data.datasets[0].data = diskData;
+        diskChart.update();
+    }
+}
+
+async function loadIncidents() {
+
+    const response = await fetch('/incidents');
+    const incidents = await response.json();
+
+    let html = "";
+
+    incidents.forEach(incident => {
+        html += `
+            <li>
+                ${incident[1]} - ${incident[2]}
+            </li>
+        `;
     });
 
-    new Chart(
-    document.getElementById('memoryChart'),
-    {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Memory Usage',
-                data: memoryData
-            }]
-        }
-    }
-);
+    document.getElementById("incidentList").innerHTML = html;
+}
 
-new Chart(
-    document.getElementById('diskChart'),
-    {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Disk Usage',
-                data: diskData
-            }]
-        }
-    }
-);
+loadCharts();
+loadIncidents();
 
-});
+setInterval(loadCharts, 5000);
+setInterval(loadIncidents, 5000);
+
 </script>
 
 </body>
