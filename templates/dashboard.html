@@ -11,6 +11,7 @@
 <div style="width:800px;height:400px;">
     <canvas id="cpuChart"></canvas>
     <canvas id="memoryChart"></canvas>
+    <canvas id="diskChart"></canvas>
 </div>
 
 <script>
@@ -23,6 +24,7 @@ fetch('/history')
     const labels = data.map(row => row[4]);
     const cpuData = data.map(row => row[1]);
     const memoryData = data.map(row => row[2]);
+    const diskData = data.map(row => row[3]);
 
     const ctx = document.getElementById('cpuChart');
 
@@ -46,6 +48,20 @@ fetch('/history')
             datasets: [{
                 label: 'Memory Usage',
                 data: memoryData
+            }]
+        }
+    }
+);
+
+new Chart(
+    document.getElementById('diskChart'),
+    {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Disk Usage',
+                data: diskData
             }]
         }
     }
